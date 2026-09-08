@@ -13,6 +13,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Montserrat:wght@700;800;900&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+    <!-- HEIC Image Converter for iPhone photos -->
+    <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
 
     <script>
         tailwind.config = {
@@ -801,14 +803,19 @@
             grid.innerHTML = '<div class="col-span-full text-center py-12 text-gray-500 font-medium"><i class="fa-solid fa-spinner fa-spin text-2xl text-purple-600 mb-2"></i><p>Loading photos from GitHub repository...</p></div>';
             
             try {
-                const response = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/images?ref=${GITHUB_BRANCH}`);
+                // Add timestamp cache-buster and no-cache header to prevent mobile browser API caching
+                const cacheBuster = Date.now();
+                const response = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/images?ref=${GITHUB_BRANCH}&cb=${cacheBuster}`, {
+                    cache: 'no-cache'
+                });
+
                 if (!response.ok) {
                     throw new Error('Could not load images directory from GitHub');
                 }
                 const files = await response.json();
                 
-                // Filter for image files
-                const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
+                // Filter for all common image file extensions including iPhone HEIC/HEIF
+                const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.heic', '.heif', '.avif', '.bmp', '.tiff', '.jfif'];
                 const imageFiles = Array.isArray(files) ? files.filter(file => {
                     const name = file.name.toLowerCase();
                     return imageExtensions.some(ext => name.endsWith(ext));
@@ -816,7 +823,7 @@
 
                 initialPhotos = imageFiles.map((file, idx) => ({
                     id: idx + 1,
-                    src: file.download_url || `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/images/${file.name}`,
+                    src: file.download_url || `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/images/${encodeURIComponent(file.name)}`,
                     filename: file.name
                 }));
 
@@ -871,12 +878,16 @@
                     card.className = "bg-white rounded-2xl overflow-hidden shadow-sm border border-purple-100 hover:shadow-lg transition duration-300 flex flex-col group cursor-pointer";
                     card.onclick = () => openLightbox(item.src);
 
+                    const isHeic = item.filename.toLowerCase().endsWith('.heic') || item.filename.toLowerCase().endsWith('.heif');
+                    const imgId = `img-${item.id}`;
+
                     card.innerHTML = `
                         <div class="h-64 bg-purple-100 relative overflow-hidden">
-                            <img src="${item.src}" 
+                            <img id="${imgId}"
+                                 src="${item.src}" 
                                  alt="Face Paint Design" 
                                  class="w-full h-full object-cover group-hover:scale-105 transition duration-300"
-                                 onerror="this.onerror=null; this.src='https://placehold.co/600x400/F7C8E0/333333?text=Image+Not+Found';" />
+                                 onerror="handleImageError(this, '${item.src}', '${item.filename}')" />
                             <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
                                 <span class="bg-white/90 text-purple-900 text-xs font-bold px-3 py-1.5 rounded-full shadow flex items-center gap-1">
                                     <i class="fa-solid fa-expand text-[10px]"></i> View Photo
@@ -885,6 +896,11 @@
                         </div>
                     `;
                     grid.appendChild(card);
+
+                    // Convert HEIC on the fly if needed
+                    if (isHeic && window.heic2any) {
+                        convertHeicImage(item.src, imgId);
+                    }
                 });
 
                 // Update pagination controls
@@ -927,6 +943,30 @@
 
         function closeLightbox() {
             document.getElementById('lightboxModal').classList.add('hidden');
+        }
+
+        async function convertHeicImage(url, imgId) {
+            try {
+                const res = await fetch(url);
+                const blob = await res.blob();
+                const convertedBlob = await heic2any({ blob, toType: "image/jpeg", quality: 0.8 });
+                const conversionResult = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
+                const objectUrl = URL.createObjectURL(conversionResult);
+                const imgEl = document.getElementById(imgId);
+                if (imgEl) imgEl.src = objectUrl;
+            } catch (err) {
+                console.warn("Could not convert HEIC image:", url, err);
+            }
+        }
+
+        function handleImageError(img, originalSrc, filename) {
+            if (!img.dataset.retried) {
+                img.dataset.retried = "true";
+                img.src = `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/images/${filename}`;
+            } else {
+                img.onerror = null;
+                img.src = 'https://placehold.co/600x400/F7C8E0/333333?text=Image+Loading...';
+            }
         }
 
         function toggleMobileMenu() {
