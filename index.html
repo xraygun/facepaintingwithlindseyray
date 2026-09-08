@@ -104,18 +104,10 @@
             <a href="#" class="flex items-center gap-3 group">
                 <div class="flex items-center gap-3">
                     <div class="relative w-12 h-12 sm:w-14 sm:h-14 flex-shrink-0 flex items-center justify-center">
-                        <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-sm">
-                            <path d="M 50 10 C 60 10, 65 20, 75 18 C 85 16, 92 25, 90 35 C 90 45, 98 52, 95 62 C 92 72, 83 78, 78 86 C 70 92, 60 88, 50 92 C 40 88, 30 92, 22 86 C 17 78, 8 72, 5 62 C 2 52, 10 45, 10 35 C 8 25, 15 16, 25 18 C 35 20, 40 10, 50 10 Z" fill="#F7C8E0"/>
-                            <path d="M 58 26 A 12 12 0 0 1 82 26" fill="none" stroke="#FF8A8A" stroke-width="3" stroke-linecap="round"/>
-                            <path d="M 61 26 A 9 9 0 0 1 79 26" fill="none" stroke="#FFD3B6" stroke-width="3" stroke-linecap="round"/>
-                            <path d="M 64 26 A 6 6 0 0 1 76 26" fill="none" stroke="#46B5A4" stroke-width="3" stroke-linecap="round"/>
-                            <path d="M 62 34 Q 60 28 66 25 Q 72 20 78 26 Q 84 28 82 34 Z" fill="#FFFFFF"/>
-                            <circle cx="70" cy="29" r="1" fill="#333"/>
-                            <circle cx="75" cy="29" r="1" fill="#333"/>
-                            <text x="46" y="48" font-family="Fredoka" font-size="13" font-weight="bold" fill="#F26298" text-anchor="middle">Face</text>
-                            <text x="46" y="62" font-family="Fredoka" font-size="13" font-weight="bold" fill="#F26298" text-anchor="middle">Painting</text>
-                            <text x="46" y="72" font-family="Quicksand" font-size="7" font-weight="bold" fill="#333" text-anchor="middle">with LINDSEY RAY</text>
-                        </svg>
+                        <img src="assets/images/Face_Painting_Logo.svg" 
+                             alt="Face Painting with Lindsey Ray Logo" 
+                             class="w-full h-full object-cover rounded-full"
+                             onerror="if(!this.dataset.t1){this.dataset.t1='1';this.src='images/Face_Painting_Logo.svg';}else if(!this.dataset.t2){this.dataset.t2='1';this.src='https://raw.githubusercontent.com/xraygun/facepaintingwithlindseyray/main/assets/images/Face_Painting_Logo.svg';}else if(!this.dataset.t3){this.dataset.t3='1';this.src='https://raw.githubusercontent.com/xraygun/facepaintingwithlindseyray/main/images/Face_Painting_Logo.svg';}else if(!this.dataset.t4){this.dataset.t4='1';this.src='assets/images/Face_Painting_Round_Logo.svg';}">
                     </div>
                     
                     <div class="hidden xs:block">
@@ -218,11 +210,11 @@
                     <div class="relative w-full max-w-md">
                         <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border-4 border-white relative transform rotate-1 hover:rotate-0 transition duration-300">
                             <div class="flex flex-col items-center text-center">
-                                <div class="w-36 h-36 bg-pink-100 rounded-full p-4 flex flex-col items-center justify-center shadow-inner border-2 border-pink-200 relative mb-4">
-                                    <div class="text-xs font-bold text-pink-500 uppercase tracking-widest font-heading mb-0.5">Face</div>
-                                    <div class="text-xl font-bold text-pink-600 uppercase tracking-wide font-heading leading-none">Painting</div>
-                                    <div class="text-[9px] font-bold text-gray-800 tracking-wider mt-1"><span class="text-pink-500 font-normal">with</span> LINDSEY RAY</div>
-                                </div>
+                                <!-- Round Logo SVG replacing previous circle container -->
+                                <img src="assets/images/Face_Painting_Logo.svg" 
+                                     alt="Face Painting with Lindsey Ray Logo" 
+                                     class="w-36 h-36 sm:w-40 sm:h-40 object-cover rounded-full mb-4 transition transform hover:scale-105"
+                                     onerror="if(!this.dataset.t1){this.dataset.t1='1';this.src='images/Face_Painting_Logo.svg';}else if(!this.dataset.t2){this.dataset.t2='1';this.src='https://raw.githubusercontent.com/xraygun/facepaintingwithlindseyray/main/assets/images/Face_Painting_Logo.svg';}else if(!this.dataset.t3){this.dataset.t3='1';this.src='https://raw.githubusercontent.com/xraygun/facepaintingwithlindseyray/main/images/Face_Painting_Logo.svg';}else if(!this.dataset.t4){this.dataset.t4='1';this.src='assets/images/Face_Painting_Round_Logo.svg';}">
 
                                 <div class="font-signature text-3xl font-black uppercase tracking-tight" style="color: #46B5A4;">
                                     LINDSEY RAY
@@ -841,7 +833,6 @@
         }
 
         function useFallbackGallery() {
-            // Safe fallback images to prevent blank screens or endless retries
             initialPhotos = [
                 { id: 1, src: 'https://images.unsplash.com/photo-1560529176-a6645ee0890e?w=600&auto=format&fit=crop&q=80', filename: 'butterfly.jpg' },
                 { id: 2, src: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=600&auto=format&fit=crop&q=80', filename: 'facepaint1.jpg' },
@@ -903,13 +894,11 @@
                     `;
                     grid.appendChild(card);
 
-                    // Queue HEIC processing safely one by one to avoid web worker memory crashes
                     if (isHeic && window.heic2any) {
                         queueHeicConversion(item.src, imgId);
                     }
                 });
 
-                // Update pagination controls
                 document.getElementById('currentPageNum').textContent = currentPage;
                 document.getElementById('totalPagesNum').textContent = totalPages;
                 document.getElementById('totalPhotosNum').textContent = activePhotos.length;
@@ -978,17 +967,16 @@
                 console.warn("Could not convert HEIC image:", url);
             } finally {
                 isProcessingHeic = false;
-                setTimeout(processNextHeic, 150); // Pause to release memory
+                setTimeout(processNextHeic, 150);
             }
         }
 
         function handleImageError(img, originalSrc, filename) {
-            img.onerror = null; // Unbind immediately to prevent error loops
+            img.onerror = null;
             if (!img.dataset.retried) {
                 img.dataset.retried = "true";
                 img.src = `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/images/${filename}`;
             } else {
-                // Safe inline SVG to guarantee no network loop or crash
                 img.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400"><rect width="100%" height="100%" fill="%23F7C8E0"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="bold" fill="%232D3748">Face Paint Design</text></svg>';
             }
         }
